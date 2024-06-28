@@ -29,6 +29,7 @@ export default function Form() {
     getValues,
     setValue,
     formState: { errors },
+    resetField,
     setError,
   } = useForm<FormData>();
 
@@ -72,7 +73,11 @@ export default function Form() {
       if (res.status !== 400) {
         setStep(3);
       } else {
-        setError("otp", { message: res.error });
+        setError("otp", {
+          message: res.error,
+          type: "disabled",
+        });
+        resetField("otp");
       }
     } catch (error) {
       setError("otp", { message: "Error verifying OTP" });
@@ -188,6 +193,19 @@ export default function Form() {
             onSubmit={handleSubmit(handleFinalSubmit)}
             className="space-y-4"
           >
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                {...register("email", { required: "Email is required" })}
+                disabled
+              />
+              {errors.email && (
+                <p className="text-red-600 text-sm">{errors.email.message}</p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
