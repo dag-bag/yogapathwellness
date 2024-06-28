@@ -7,9 +7,10 @@ const mailjet = Mailjet.apiConnect(
     options: {},
   }
 );
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import OtpSchema from "@/models/Otp";
 import connect from "@/utils/db";
+import User from "@/models/User";
 connect();
 function generateOTP() {
   const otp = Math.floor(1000 + Math.random() * 9000);
@@ -20,7 +21,10 @@ export async function POST(NextRequest: NextRequest) {
   if (!email) {
     return Response.json({ email: "invalid body" });
   }
-  console.log(NextRequest);
+  const isUser = await User.findOne({ email });
+  if (isUser) {
+    return NextResponse.json({ error: "User Already Exist" }, { status: 400 });
+  }
   const to = email;
   try {
     const otp = generateOTP();

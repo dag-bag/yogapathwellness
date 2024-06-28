@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+
 interface FormValues {
   email: string;
   password: string;
@@ -22,11 +24,12 @@ const errorConfig = {
   },
   P: {
     key: "password",
-    message: "Password Incorrent",
+    message: "Password Incorrect",
   },
 };
 
 export default function Form() {
+  const [isLoading, setIsLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -35,7 +38,10 @@ export default function Form() {
     getValues,
   } = useForm<FormValues>();
   const router = useRouter();
+
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    setIsLoading(true);
+
     const res = await signIn("credentials", {
       redirect: false,
       email: data.email,
@@ -53,6 +59,8 @@ export default function Form() {
         });
       }
     }
+
+    setIsLoading(false);
   };
 
   return (
@@ -102,8 +110,8 @@ export default function Form() {
               </div>
             )}
           </div>
-          <Button type="submit" className="w-full">
-            Sign in
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Signing in..." : "Sign in"}
           </Button>
           <Button
             type="button"

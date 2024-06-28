@@ -41,7 +41,14 @@ export default function Form() {
       },
       body: JSON.stringify({ email }),
     });
-    setStep(2);
+    const res = await response.json();
+    if (!res.error) {
+      setStep(2);
+    } else {
+      setError("email", {
+        message: (res.error as string) ?? "Something went wrong",
+      });
+    }
   };
 
   const handleOTPSubmit: SubmitHandler<FormData> = async (data) => {
@@ -90,7 +97,7 @@ export default function Form() {
                 {...register("email", { required: "Email is required" })}
               />
               {errors.email && (
-                <p className="text-red-600">{errors.email.message}</p>
+                <p className="text-red-600 text-sm">{errors.email.message}</p>
               )}
             </div>
             <Button type="submit" className="w-full">
