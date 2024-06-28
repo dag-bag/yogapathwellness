@@ -15,14 +15,13 @@ import { signIn } from "next-auth/react";
 
 interface FormData {
   email: string;
-  otp: string[];
-  name: string;
+  otp: string;
   password: string;
 }
 
 export default function Form() {
-  const router = useRouter();
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -37,44 +36,55 @@ export default function Form() {
   const otp = watch("otp");
 
   const handleEmailSubmit: SubmitHandler<FormData> = async (data) => {
-    const response = await fetch("/api/sendMail", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email }),
-    });
-    const res = await response.json();
-    if (!res.error) {
-      setStep(2);
-    } else {
-      setError("email", {
-        message: (res.error as string) ?? "Something went wrong",
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/sendMail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
       });
+      const res = await response.json();
+      if (!res.error) {
+        setStep(2);
+      } else {
+        setError("email", { message: res.error ?? "Something went wrong" });
+      }
+    } catch (error) {
+      setError("email", { message: "Error sending email" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleOTPSubmit: SubmitHandler<FormData> = async (data) => {
-    const isOtpVerified = await fetch("/api/otp", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, otp }),
-    });
-    const res = await isOtpVerified.json();
-    if (res.status !== 400) {
-      setStep(3);
-    } else {
-      setError("otp", {
-        message: res.error,
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, otp }),
       });
+      const res = await response.json();
+      if (res.status !== 400) {
+        setStep(3);
+      } else {
+        setError("otp", { message: res.error });
+      }
+    } catch (error) {
+      setError("otp", { message: "Error verifying OTP" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleFinalSubmit: SubmitHandler<FormData> = async (data) => {
+    setIsLoading(true);
     try {
-      const res = await fetch("/api/register", {
+      const response = await fetch("/api/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,12 +94,10 @@ export default function Form() {
           password: data.password,
         }),
       });
-      if (res.status === 400) {
-        setError("email", {
-          message: "This email is already registered",
-        });
+      if (response.status === 400) {
+        setError("email", { message: "This email is already registered" });
       }
-      if (res.status === 200) {
+      if (response.status === 200) {
         signIn("credentials", {
           redirect: false,
           email,
@@ -97,9 +105,9 @@ export default function Form() {
         });
       }
     } catch (error) {
-      setError("password", {
-        message: "Something went wrong",
-      });
+      setError("password", { message: "Error during registration" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -124,13 +132,14 @@ export default function Form() {
                 type="email"
                 placeholder="m@example.com"
                 {...register("email", { required: "Email is required" })}
+                disabled={isLoading}
               />
               {errors.email && (
                 <p className="text-red-600 text-sm">{errors.email.message}</p>
               )}
             </div>
-            <Button type="submit" className="w-full">
-              Continue
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Sending..." : "Continue"}
             </Button>
           </form>
         </div>
@@ -158,9 +167,11 @@ export default function Form() {
                 ))}
               </InputOTPGroup>
             </InputOTP>
-            {errors.otp && <p className="text-red-600">{errors.otp.message}</p>}
-            <Button type="submit" className="w-full">
-              Verify
+            {errors.otp && (
+              <p className="text-red-600 text-sm">{errors.otp.message}</p>
+            )}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Verifying..." : "Verify"}
             </Button>
           </form>
         </div>
@@ -178,18 +189,6 @@ export default function Form() {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                placeholder="John Doe"
-                {...register("email", { required: "Name is required" })}
-                disabled
-              />
-              {errors.email && (
-                <p className="text-red-600">{errors.email.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -201,13 +200,16 @@ export default function Form() {
                     message: "Password must be at least 8 characters",
                   },
                 })}
+                disabled={isLoading}
               />
               {errors.password && (
-                <p className="text-red-600">{errors.password.message}</p>
+                <p className="text-red-600 text-sm">
+                  {errors.password.message}
+                </p>
               )}
             </div>
-            <Button type="submit" className="w-full">
-              Sign Up
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Signing up..." : "Sign Up"}
             </Button>
           </form>
         </div>
