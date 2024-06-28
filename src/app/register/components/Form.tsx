@@ -10,6 +10,8 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 interface FormData {
   email: string;
@@ -19,6 +21,7 @@ interface FormData {
 }
 
 export default function Form() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const {
     register,
@@ -69,9 +72,35 @@ export default function Form() {
     }
   };
 
-  const handleFinalSubmit: SubmitHandler<FormData> = (data) => {
-    console.log("Final data:", data);
-    // Proceed with the final submission or other actions
+  const handleFinalSubmit: SubmitHandler<FormData> = async (data) => {
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password: data.password,
+        }),
+      });
+      if (res.status === 400) {
+        setError("email", {
+          message: "This email is already registered",
+        });
+      }
+      if (res.status === 200) {
+        signIn("credentials", {
+          redirect: false,
+          email,
+          password: data.password,
+        });
+      }
+    } catch (error) {
+      setError("password", {
+        message: "Something went wrong",
+      });
+    }
   };
 
   return (

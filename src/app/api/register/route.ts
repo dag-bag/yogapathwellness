@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import OtpSchema from "@/models/Otp";
 export const POST = async (request: any) => {
-  const { email, password, otp } = await request.json();
+  const { email, password } = await request.json();
 
   await connect();
 
@@ -21,12 +21,7 @@ export const POST = async (request: any) => {
       { status: 400 }
     );
   }
-  if (Otp.otp != otp) {
-    return Response.json(
-      { message: "Wrong Otp", error: true },
-      { status: 400 }
-    );
-  }
+
   console.log("Otp verified");
   Otp.expiresAt = new Date();
   await Otp.save();
