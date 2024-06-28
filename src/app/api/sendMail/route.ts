@@ -25,6 +25,10 @@ export async function POST(NextRequest: NextRequest) {
   if (isUser) {
     return NextResponse.json({ error: "User Already Exist" }, { status: 400 });
   }
+  const isAlreadyOtpSend = await OtpSchema.findOne({ email });
+  if (isAlreadyOtpSend) {
+    OtpSchema.findOneAndUpdate({ email }, { otp: generateOTP() });
+  }
   const to = email;
   try {
     const otp = generateOTP();

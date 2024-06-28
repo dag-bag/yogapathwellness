@@ -2,11 +2,12 @@ import connect from "@/utils/db";
 import OtpSchema from "@/models/Otp";
 export const POST = async (request: any) => {
   const { otp, email } = await request.json();
+
   await connect();
   try {
     await connect(); // Czonnect to MongoDB
     const savedOtp = await OtpSchema.findOne({ email });
-
+    console.log(savedOtp, otp);
     if (!savedOtp) {
       return Response.json({ error: "OTP not found or expired", status: 400 });
     }
