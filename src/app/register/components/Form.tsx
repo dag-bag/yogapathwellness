@@ -35,7 +35,6 @@ export default function Form() {
 
   const email = watch("email");
   const otp = watch("otp");
-
   const handleEmailSubmit: SubmitHandler<FormData> = async (data) => {
     setIsLoading(true);
     try {
@@ -70,14 +69,13 @@ export default function Form() {
         body: JSON.stringify({ email, otp }),
       });
       const res = await response.json();
+      console.log(res);
       if (res.status !== 400) {
         setStep(3);
       } else {
-        setError("otp", {
+        setError("root", {
           message: res.error,
-          type: "disabled",
         });
-        resetField("otp");
       }
     } catch (error) {
       setError("otp", { message: "Error verifying OTP" });
@@ -172,8 +170,10 @@ export default function Form() {
                 ))}
               </InputOTPGroup>
             </InputOTP>
-            {errors.otp && (
-              <p className="text-red-600 text-sm">{errors.otp.message}</p>
+            {(errors.otp || errors.root) && (
+              <p className="text-red-600 text-sm">
+                {errors?.otp?.message || errors?.root?.message}
+              </p>
             )}
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Verifying..." : "Verify"}
