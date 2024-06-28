@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface FormValues {
   email: string;
@@ -110,6 +111,12 @@ export default function Form() {
               </div>
             )}
           </div>
+          <Link
+            href="/forgot"
+            className="text-blue-500 text-sm mt-2 hover:underline"
+          >
+            Forgot Password?
+          </Link>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Signing in..." : "Sign in"}
           </Button>
